@@ -1,0 +1,20 @@
+{
+  "mcpServers": {
+    "telegram-mock": {
+      "command": "node",
+      "args": [
+        "--input-type=module",
+        "-e",
+        "import('node:fs').then(fs=>import('node:path').then(p=>import('node:os').then(os=>import('node:url').then(u=>{const c=[p.join(process.cwd(),'.agents/plugins/5star-sanity-stack/mcp/telegram-mock/index.mjs'),p.join(os.homedir(),'.gemini/config/plugins/5star-sanity-stack/mcp/telegram-mock/index.mjs')];import(u.pathToFileURL(c.find(fs.existsSync)||c[1]).href)}))))"
+      ]
+    },
+    "code-mode": {
+      "command": "node",
+      "args": [
+        "--input-type=module",
+        "-e",
+        "import('node:fs').then(fs=>import('node:path').then(p=>import('node:os').then(os=>import('node:url').then(u=>{const c=[p.join(process.cwd(),'.agents/plugins/5star-sanity-stack/mcp/code-mode/index.mjs'),p.join(os.homedir(),'.gemini/config/plugins/5star-sanity-stack/mcp/code-mode/index.mjs')];import(u.pathToFileURL(c.find(fs.existsSync)||c[1]).href)}))))"
+      ]
+    }
+  }
+}

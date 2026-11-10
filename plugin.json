@@ -1,0 +1,23 @@
+{
+  "name": "5star-sanity-stack",
+  "displayName": "5-Star Sanity + Next.js App Router Stack",
+  "version": "1.0.0",
+  "description": "Production-grade operating system and customizations for the 5-Star Stack: Sanity v3, Dual-Tier fallbacks (ADR 0007 anti-shadowing), Next.js 15, Supabase, and Telegram Bot 2-way back-office with Cloudflare Code Mode MCP.",
+  "author": {
+    "name": "5-Star Architecture Team"
+  },
+  "license": "MIT",
+  "keywords": [
+    "sanity",
+    "sanity-v3",
+    "nextjs",
+    "nextjs15",
+    "app-router",
+    "supabase",
+    "telegram-bot",
+    "mcp",
+    "code-mode",
+    "adr-0007",
+    "fallback-architecture"
+  ]
+}
