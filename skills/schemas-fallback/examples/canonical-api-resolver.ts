@@ -25,22 +25,22 @@ function normalizeService(
   return {
     id: raw.slug?.current || raw.id || fallback?.id || '',
     slug: raw.slug?.current || raw.slug || fallback?.slug || '',
-    name: raw.name || fallback?.name || 'Послуга медичного центру',
+    name: raw.name || fallback?.name || 'Service Package',
     category: raw.category || fallback?.category || 'general',
     price: typeof raw.price === 'number' ? raw.price : fallback?.price || 0,
     priceNote: raw.priceNote || fallback?.priceNote || undefined,
-    duration: raw.duration || fallback?.duration || '30 хв',
+    duration: raw.duration || fallback?.duration || '30 min',
     
     // Field Semantic Separation (ADR 0007):
     // Never overload a single field for distinct visual surfaces!
     cardDescription: raw.cardDescription || fallback?.cardDescription || raw.description || '',
     heroSubtitle: raw.heroSubtitle || fallback?.heroSubtitle || '',
     
-    // Relations & Doctor assignments normalized to simple short strings/arrays
-    assignedDoctorName: raw.assignedDoctor?.name || fallback?.assignedDoctorName || '',
-    assignedDoctorSlugs: Array.isArray(raw.assignedDoctors)
-      ? raw.assignedDoctors.map((d: any) => d.slug?.current || d.slug || d)
-      : fallback?.assignedDoctorSlugs || [],
+    // Relations & Specialist assignments normalized to simple short strings/arrays
+    assignedSpecialistName: raw.assignedSpecialist?.name || fallback?.assignedSpecialistName || '',
+    assignedSpecialistSlugs: Array.isArray(raw.assignedSpecialists)
+      ? raw.assignedSpecialists.map((d: any) => d.slug?.current || d.slug || d)
+      : fallback?.assignedSpecialistSlugs || [],
 
     isActive: raw.isActive !== false,
     order: typeof raw.order === 'number' ? raw.order : fallback?.order ?? 99,
@@ -66,11 +66,11 @@ export async function getServices(): Promise<NormalizedServiceItem[]> {
         heroSubtitle,
         isActive,
         order,
-        assignedDoctor->{
+        assignedSpecialist->{
           name,
           "slug": slug.current
         },
-        assignedDoctors[]->{
+        assignedSpecialists[]->{
           name,
           "slug": slug.current
         }

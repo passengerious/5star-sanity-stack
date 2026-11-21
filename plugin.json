@@ -6,6 +6,10 @@
   "author": {
     "name": "5-Star Architecture Team"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/passengerious/5star-sanity-stack.git"
+  },
   "license": "MIT",
   "keywords": [
     "sanity",

@@ -72,37 +72,37 @@ console.log('Webhook reachable:', health.success, health.latencyMs);`,
     title: 'sanity.fetch(groqQuery, params?)',
     signature: 'await sanity.fetch(query, params?)',
     description: 'Executes a read GROQ query against Sanity Content Lake using project credentials from environment.',
-    example: `const doctors = await sanity.fetch(
-  \`*[_type == "doctor" && !(_id in path("drafts.**"))] {
+    example: `const specialists = await sanity.fetch(
+  \`*[_type == "specialist" && !(_id in path("drafts.**"))] {
     name,
     "slug": slug.current,
     specialization
   }\`
 );
-console.log('Doctors count:', doctors?.length);`,
+console.log('Specialists count:', specialists?.length);`,
   },
   {
     service: 'supabase',
     title: 'supabase.from(tableName)',
     signature: 'await supabase.from(table).select(cols?).eq(col, val)...',
-    description: 'Lightweight PostgREST query builder for Supabase tables (e.g. appointments, profiles).',
+    description: 'Lightweight PostgREST query builder for Supabase tables (e.g. bookings, orders, profiles).',
     example: `const { data, error } = await supabase
-  .from('appointments')
-  .select('id, patient_name, status, created_at')
+  .from('bookings')
+  .select('id, client_name, status, created_at')
   .eq('status', 'confirmed')
   .limit(5);
-console.log('Appointments:', data);`,
+console.log('Bookings:', data);`,
   },
   {
     service: 'recipes',
     title: 'Cross-Service Recipe: Verify Lead and Sync Status',
     signature: 'Chaining Supabase, Sanity, and Telegram in 1 Turn',
-    description: 'Demonstrates verifying a booking from Supabase, checking doctor data in Sanity, and confirming in Telegram.',
+    description: 'Demonstrates verifying a booking from Supabase, checking specialist data in Sanity, and confirming in Telegram.',
     example: `// 1. Fetch lead from Supabase
-const { data: lead } = await supabase.from('appointments').select('*').limit(1).single();
+const { data: lead } = await supabase.from('bookings').select('*').limit(1).single();
 
-// 2. Fetch doctor from Sanity
-const doctor = await sanity.fetch('*[_type == "doctor"][0] { name, specialization }');
+// 2. Fetch specialist from Sanity
+const specialist = await sanity.fetch('*[_type == "specialist"][0] { name, specialization }');
 
 // 3. Confirm in Telegram
 const tg = await telegram.simulateConfirm({
@@ -112,7 +112,7 @@ const tg = await telegram.simulateConfirm({
 
 return {
   leadId: lead?.id,
-  assignedDoctor: doctor?.name,
+  assignedSpecialist: specialist?.name,
   telegramStatus: tg.action,
   preview: tg.renderedTelegramCard
 };`,

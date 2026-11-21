@@ -39,18 +39,18 @@ test('Dual-Tier Fallback Contract: Every fallback service satisfies the runtime 
       );
     }
 
-    // 4. Lexicon Invariant (ADR 0001)
-    // Strictly prevent banned terminology from leaking into customer-facing copy
+    // 4. Placeholder / Draft Copy Guard
+    // Strictly prevent placeholder text from leaking into customer-facing copy
     assert.doesNotMatch(
       item.name,
-      /\bклінік[а-я]*\b/i,
-      `Service name must avoid banned word "клініка" per ADR 0001: ${item.name}`
+      /\b(?:TODO|TBD|lorem ipsum)\b/i,
+      `Service name must not contain placeholder copy: ${item.name}`
     );
     if (item.cardDescription) {
       assert.doesNotMatch(
         item.cardDescription,
-        /\bклінік[а-я]*\b/i,
-        `cardDescription must avoid banned word "клініка" per ADR 0001: ${item.cardDescription}`
+        /\b(?:TODO|TBD|lorem ipsum)\b/i,
+        `cardDescription must not contain placeholder copy: ${item.cardDescription}`
       );
     }
   }

@@ -4,13 +4,13 @@
  * Dual-Tier Architecture & Anti-Shadowing Validator (ADR 0007 Audit Script)
  *
  * Scans a Next.js App Router codebase for ADR 0007 violations:
- * 1. In-Component Fallback Datasets (const CLINICAL_DIRECTIONS = [...], fallbackDoctor: '...')
+ * 1. In-Component Fallback Datasets (const SERVICE_CATEGORIES = [...], fallbackSpecialist: '...')
  * 2. In-Component Inline Fallback Chaining (prop.value || localFallback.value)
  * 3. Static regex assertions on .tsx source code in test files
- * 4. Presence of dedicated cardDescription on service/direction data models
+ * 4. Presence of dedicated cardDescription on service/category data models
  *
  * Usage:
- *   node ~/.gemini/config/plugins/5star-sanity-stack/skills/schemas&fallback/scripts/validate-dual-tier-contracts.mjs [project_root]
+ *   node ~/.gemini/config/plugins/5star-sanity-stack/skills/schemas-fallback/scripts/validate-dual-tier-contracts.mjs [project_root]
  */
 
 import fs from 'node:fs';
@@ -60,15 +60,15 @@ const componentDirs = [
 
 const COMPONENT_SUSPICIOUS_PATTERNS = [
   {
-    regex: /(?:const|let|var)\s+([A-Z_0-9]*(?:FALLBACK|DIRECTIONS|SERVICES|DOCTORS|FAQS)[A-Z_0-9]*)\s*[:=]\s*\[/,
+    regex: /(?:const|let|var)\s+([A-Z_0-9]*(?:FALLBACK|CATEGORIES|DIRECTIONS|SERVICES|SPECIALISTS|DOCTORS|FAQS)[A-Z_0-9]*)\s*[:=]\s*\[/,
     message: 'In-Component Fallback Array: Static datasets must reside exclusively in web/src/data/*.ts per ADR 0007.',
   },
   {
-    regex: /fallbackDoctor\s*:\s*['"`]/,
-    message: 'Hardcoded Fallback Doctor in Component: Doctor resolution must be normalized in api.ts.',
+    regex: /fallback(?:Specialist|Doctor)\s*:\s*['"`]/,
+    message: 'Hardcoded Fallback Entity in Component: Entity resolution must be normalized in api.ts.',
   },
   {
-    regex: /(?:localFallback|servicesFallback|directionsFallback)\./,
+    regex: /(?:localFallback|servicesFallback|categoriesFallback|directionsFallback)\./,
     message: 'In-Component Fallback Chaining: UI must receive normalized props without local fallback objects.',
   },
 ];

@@ -184,7 +184,7 @@ export function generateOrganizationJsonLd() {
 
   return {
     '@context': 'https://schema.org',
-    '@type': 'LocalBusiness', // Or 'MedicalClinic', 'Store', 'Corporation'
+    '@type': 'LocalBusiness', // Or 'ProfessionalService', 'Store', 'Corporation'
     name: 'Brand Name',
     url: baseUrl,
     telephone: '+380501234567',

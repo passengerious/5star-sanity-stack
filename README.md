@@ -12,8 +12,29 @@ Antigravity customization bundle for building resilient, high-performance web ap
 ## What's Included
 
 ### 1. Dual Model Context Protocol (MCP) Suite
-- **`telegram-mock`**: High-level declarative emulator with visual in-memory message cards and 1-click preset scenarios (`new_booking`, `manager_confirm`, `manager_cancel`).
+- **`telegram-mock`**: High-level declarative emulator with visual in-memory message cards and 1-click preset scenarios (`telegram_scenario_new_booking`, `telegram_scenario_manager_confirm`, `telegram_scenario_manager_cancel`).
 - **`code-mode`**: Advanced Cloudflare Code Mode pattern (`search` + `execute`) with pre-injected SDKs (`sanity`, `supabase`, `telegram`, `console`) for multi-step agent workflows.
+
+#### Visual Inspection with MCP Inspector
+Inspect, test, and debug Telegram bot interactions and preset scenarios visually using `@modelcontextprotocol/inspector`:
+
+```bash
+# Recommended: node with $HOME
+npx -y @modelcontextprotocol/inspector node "$HOME/.gemini/config/plugins/5star-sanity-stack/mcp/telegram-mock/index.mjs"
+
+# Or direct executable:
+npx -y @modelcontextprotocol/inspector "$HOME/.gemini/config/plugins/5star-sanity-stack/mcp/telegram-mock/index.mjs"
+```
+
+> [!WARNING]
+> **Do NOT use bare `~` in Inspector commands:**  
+> `child_process.spawn()` (used internally by MCP Inspector) does NOT invoke a shell to expand `~`. Using `~` causes Node to search for a literal directory named `~` in `process.cwd()` and fails with `MODULE_NOT_FOUND`. Always use `"$HOME/..."` or full absolute paths.
+
+**MCP Inspector v2 Tokenized URL Authentication:**  
+Inspector v2 generates a tokenized URL (e.g. `http://127.0.0.1:XXXX?MCP_INSPECTOR_API_TOKEN=...`). Always open that exact URL from terminal output to avoid "Failed to fetch" errors.
+
+**1-Click Preset Scenarios & In-Place State Verification:**  
+Run `telegram_scenario_new_booking` to generate an active lead card with action buttons, followed by `telegram_scenario_manager_confirm` or `telegram_scenario_manager_cancel` to dispatch callbacks to your webhook. Call `telegram_get_card_preview` to observe the rendered ASCII card reflect in-place message state changes (freeze buttons, status badge transition, manager attribution).
 
 ### 2. Architectural Invariants (ADR 0007)
 Enforced via `rules/AGENTS.md`:
@@ -31,7 +52,7 @@ Enforced via `rules/AGENTS.md`:
 - `sanity-migration`: Content migration patterns.
 - `sanity-studio-upgrade`: Tailored Studio upgrade guidance.
 - `sanity-visual-editing-and-isr`: Presentation Tool and Draft Mode.
-- `schemas&fallback`: Dual-Tier fallback resolution methodology.
+- `schemas-fallback`: Dual-Tier fallback resolution methodology.
 - `seo-aeo-best-practices`: Search and AI answer engine optimization.
 - `supabase-integration`: SSR auth, RLS, and hybrid state patterns.
 - `telegram_bot-integration`: 2-way back-office bot architecture and webhook handlers.

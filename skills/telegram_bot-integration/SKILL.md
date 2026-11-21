@@ -63,18 +63,46 @@ TELEGRAM_WEBHOOK_SECRET=your_super_secret_alphanumeric_string_32chars
 ```
 
 > [!TIP]
-> **Pre-BotFather Testing with Universal Telegram Mock MCP:**  
-> You do NOT need to wait for human BotFather credentials or public ngrok tunnels to test your webhook handler! The `5star-sanity-stack` plugin provides the `telegram-mock` MCP server with universal preset scenarios and in-memory message emulation:
-> - `telegram_scenario_new_booking({ clientName, clientPhone, serviceOrNotes })`: Creates an active client card in the manager group with interactive action buttons.
-> - `telegram_scenario_manager_confirm({ leadId, managerName })`: Dispatches a `confirm` callback query to your Next.js webhook, transitions the card to `🟢 CONFIRMED`, attributes the action to the manager, and freezes the buttons.
-> - `telegram_scenario_manager_cancel({ leadId, managerName, reason })`: Dispatches a `cancel` callback query, transitions to `🔴 CANCELLED`, and records the cancellation reason.
-> - `telegram_get_card_preview({ leadId })`: Renders the live ASCII/Telegram message card preview reflecting real-time state changes.
-> - `telegram_simulate_message({ text, userName, chatId })`: Dispatches raw direct client text messages (`/start`, etc.).
-> - `telegram_simulate_button_click({ callbackData, messageId })`: Dispatches arbitrary raw `callback_query` updates.
-> - `telegram_check_webhook({ webhookUrl })`: Pings your local Next.js webhook route with development mock headers.
-
-> [!TIP]
 > **Multiple Chat Routing:** Support comma-separated IDs in `TELEGRAM_CHAT_ID` (e.g. `8160938065, -100123456789`) so notifications can reach both a central group and backup manager concurrently.
+
+---
+
+### Pre-BotFather Testing with Universal Telegram Mock MCP
+
+You do NOT need to wait for human BotFather credentials or public ngrok tunnels to test your webhook handler! The `5star-sanity-stack` plugin provides the `telegram-mock` MCP server with universal preset scenarios and in-memory message emulation:
+- `telegram_scenario_new_booking({ clientName, clientPhone, serviceOrNotes })`: Creates an active client card in the manager group with interactive action buttons.
+- `telegram_scenario_manager_confirm({ leadId, managerName })`: Dispatches a `confirm` callback query to your Next.js webhook, transitions the card to `🟢 CONFIRMED`, attributes the action to the manager, and freezes the buttons.
+- `telegram_scenario_manager_cancel({ leadId, managerName, reason })`: Dispatches a `cancel` callback query, transitions to `🔴 CANCELLED`, and records the cancellation reason.
+- `telegram_get_card_preview({ leadId })`: Renders the live ASCII/Telegram message card preview reflecting real-time state changes.
+- `telegram_simulate_message({ text, userName, chatId })`: Dispatches raw direct client text messages (`/start`, etc.).
+- `telegram_simulate_button_click({ callbackData, messageId })`: Dispatches arbitrary raw `callback_query` updates.
+- `telegram_check_webhook({ webhookUrl })`: Pings your local Next.js webhook route with development mock headers.
+
+#### Testing & Debugging with MCP Inspector
+
+You can inspect, interact with, and verify the mock server visually using the official `@modelcontextprotocol/inspector`:
+
+##### Copy-Pasteable CLI Commands:
+```bash
+# Recommended: node with $HOME
+npx -y @modelcontextprotocol/inspector node "$HOME/.gemini/config/plugins/5star-sanity-stack/mcp/telegram-mock/index.mjs"
+
+# Or direct executable:
+npx -y @modelcontextprotocol/inspector "$HOME/.gemini/config/plugins/5star-sanity-stack/mcp/telegram-mock/index.mjs"
+```
+
+> [!WARNING]
+> **Do NOT Use Bare `~` in Inspector Commands:**  
+> `child_process.spawn()` (used internally by MCP Inspector) does NOT invoke a shell to expand `~`. Using `~` causes Node to search for a literal directory named `~` in `process.cwd()` and fails with `MODULE_NOT_FOUND`. Always use `"$HOME/..."` or full absolute paths.
+
+##### MCP Inspector v2 Authentication Note
+Inspector v2 generates a tokenized URL with a session authentication token (e.g. `http://127.0.0.1:XXXX?MCP_INSPECTOR_API_TOKEN=...`). Always open that exact URL from terminal output to avoid "Failed to fetch" errors.
+
+##### 1-Click Preset Scenarios & In-Place State Verification
+The `telegram-mock` server enables end-to-end webhook verification in the Inspector UI:
+1. Run **`telegram_scenario_new_booking`** to create an initial simulated booking message with interactive action buttons (`[✅ Підтвердити] [❌ Скасувати]`).
+2. Run **`telegram_scenario_manager_confirm`** or **`telegram_scenario_manager_cancel`** to dispatch an authentic `callback_query` payload to your local Next.js webhook endpoint.
+3. Call **`telegram_get_card_preview`** to observe how the rendered ASCII card reflects in-place updates: the status updates to `🟢 CONFIRMED` or `🔴 CANCELLED`, the acting manager's name and timestamp are recorded, and interactive buttons are frozen/removed, mirroring Telegram's `editMessageText` behavior.
 
 ---
 
@@ -135,7 +163,7 @@ export async function sendInteractiveNotification(params: {
   const replyMarkup: TelegramInlineKeyboard = {
     inline_keyboard: [
       [
-        { text: '✅ Підтвердити', callback_data: `approve:${params.id}` },
+        { text: '✅ Підтвердити', callback_data: `confirm:${params.id}` },
         { text: '❌ Скасувати', callback_data: `cancel:${params.id}` },
       ],
       ...(cleanPhone
@@ -218,7 +246,8 @@ export async function POST(req: NextRequest) {
       if (!data) return NextResponse.json({ ok: true });
 
       const [action, recordId] = data.split(':');
-      const targetStatus = action === 'approve' ? 'confirmed' : 'cancelled';
+      const isConfirm = action === 'confirm' || action === 'approve';
+      const targetStatus = isConfirm ? 'confirmed' : 'cancelled';
 
       // 3. Update database using Admin Client (bypassing RLS for back-office action)
       const admin = createAdminClient();
@@ -247,7 +276,7 @@ export async function POST(req: NextRequest) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           callback_query_id: callbackId,
-          text: action === 'approve' ? '✅ Підтверджено!' : '❌ Скасовано!',
+          text: isConfirm ? '✅ Підтверджено!' : '❌ Скасовано!',
         }),
       });
 
@@ -255,7 +284,7 @@ export async function POST(req: NextRequest) {
       if (message) {
         const actor = from.first_name || 'Менеджер';
         const time = new Date().toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' });
-        const badge = action === 'approve'
+        const badge = isConfirm
           ? `Статус: 🟢 <b>ПІДТВЕРДЖЕНО</b> (підтвердив(ла) ${actor} о ${time})`
           : `Статус: 🔴 <b>СКАСОВАНО</b> (скасував(ла) ${actor} о ${time})`;
 

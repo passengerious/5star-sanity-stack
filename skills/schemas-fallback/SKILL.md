@@ -19,7 +19,7 @@ To guarantee **100% uptime, fast First Contentful Paint (FCP), and zero visual l
 flowchart TD
     subgraph ClientLayer["1. Next.js 15 Request Pipeline"]
         Req["Incoming Request (SSR / SSG / ISR)"]
-        TagRevalidate["Revalidation Tag ('doctor', 'service', 'post')"]
+        TagRevalidate["Revalidation Tag ('specialist', 'service', 'post')"]
     end
 
     subgraph DualTierEngine["2. Dual-Tier Content Engine (web/src/lib/sanity/api.ts)"]
@@ -31,12 +31,12 @@ flowchart TD
         end
 
         subgraph Tier2["Tier 2: Verified Static Fallback (web/src/data)"]
-            StaticDoctors["doctors.ts (DOCTORS)"]
-            StaticDirections["service-pages.ts (SERVICE_PAGES_DATA)"]
+            StaticSpecialists["specialists.ts (SPECIALISTS)"]
+            StaticCategories["service-pages.ts (SERVICE_PAGES_DATA)"]
             StaticServices["services.ts (SERVICES)"]
             StaticBlog["blog-posts.ts (BLOG_POSTS)"]
             StaticFaq["faqs.ts (FAQS)"]
-            StaticSettings["DEFAULT_CLINIC_SETTINGS"]
+            StaticSettings["DEFAULT_SITE_SETTINGS"]
         end
 
         FieldMerger["Field-Level Normalizer & Merger"]
@@ -50,8 +50,8 @@ flowchart TD
     Req --> FetchCall
     FetchCall -->|Network Request| SanityAPI
     SanityAPI -->|Success: Populated Document| FieldMerger
-    SanityAPI -.->|Error / Timeout / Empty| StaticDoctors
-    StaticDoctors -->|Fallback Injection| FieldMerger
+    SanityAPI -.->|Error / Timeout / Empty| StaticSpecialists
+    StaticSpecialists -->|Fallback Injection| FieldMerger
     DraftMode -->|Live Preview| FieldMerger
     FieldMerger --> ServerComponent
     ServerComponent --> ClientViews
@@ -60,8 +60,8 @@ flowchart TD
 ### Core Invariants
 
 1. **Sanity Cloud is the Authoritative Content Source:** When an editor publishes or updates a document in Sanity Studio, it immediately becomes the primary source of truth across the site.
-2. **Static Data is the Immutable Operational Floor:** Files in `main/web/src/data/*.ts` contain clinically verified, curated copy. If the Sanity API is unreachable, misconfigured, or experiencing cold starts, the application serves 100% functional static pages without failing builds or throwing 500 errors.
-3. **Field-Level (Granular) Resolution:** Fallbacks do not merely operate at the document level. If an editor creates a new record in Sanity Studio but leaves non-mandatory fields unpopulated (e.g. creating a doctor profile with only a name and photo), the application gracefully populates missing fields from static backups, preventing broken layouts, blank tabs, and missing sections.
+2. **Static Data is the Immutable Operational Floor:** Files in `main/web/src/data/*.ts` contain verified, curated copy. If the Sanity API is unreachable, misconfigured, or experiencing cold starts, the application serves 100% functional static pages without failing builds or throwing 500 errors.
+3. **Field-Level (Granular) Resolution:** Fallbacks do not merely operate at the document level. If an editor creates a new record in Sanity Studio but leaves non-mandatory fields unpopulated (e.g. creating a specialist profile with only a name and photo), the application gracefully populates missing fields from static backups, preventing broken layouts, blank tabs, and missing sections.
 4. **Clean Monorepo & Environment Separation:** Sanity Studio code (`main/studio/`) and Next.js web application code (`main/web/`) are completely decoupled packages with separate `tsconfig.json`, dependencies, and environment scopes.
 
 ---
@@ -71,28 +71,28 @@ flowchart TD
 The codebase maintains strict isolation between the editorial studio and consumer web application:
 
 ```
-dimimunitetu/
+project-root/
 ├── main/
-│   ├── studio/                     # dimimunitetu-studio (Vite + Sanity v3)
+│   ├── studio/                     # project-studio (Vite + Sanity v3)
 │   │   ├── schemas/                # Document & Object schema definitions
-│   │   │   ├── clinicSettings.ts   # Global clinic parameters (contacts, schedule, MOH license)
-│   │   │   ├── doctor.ts           # Doctor profiles, education, certificates, conferences
+│   │   │   ├── siteSettings.ts     # Global site parameters (contacts, schedule, social links)
+│   │   │   ├── specialist.ts       # Specialist profiles, education, certificates, achievements
 │   │   │   ├── faqItem.ts          # Homepage global FAQs
-│   │   │   ├── medicalDirection.ts # Clinical directions, embedded SEO, symptoms, methods
+│   │   │   ├── serviceCategory.ts  # Service categories, embedded SEO, features, methods
 │   │   │   ├── pageSeo.ts          # Static hub route SEO metadata
-│   │   │   ├── post.ts             # Medical blog articles (Portable Text)
+│   │   │   ├── post.ts             # Blog articles (Portable Text)
 │   │   │   ├── service.ts          # Services & package deals
 │   │   │   └── index.ts            # Registered schemaTypes
 │   │   ├── sanity.config.ts        # Studio plugins, structure tool, presentation tool
 │   │   └── .env                    # SANITY_STUDIO_* variables only
 │   │
-│   └── web/                        # dimimunitetu-web (Next.js 15 App Router)
+│   └── web/                        # project-web (Next.js 15 App Router)
 │       ├── src/
 │       │   ├── data/               # Verified static fallback datasets
 │       │   │   ├── blog-posts.ts   # Static articles & author associations
-│       │   │   ├── doctors.ts      # 7 comprehensive doctor profiles
+│       │   │   ├── specialists.ts  # Comprehensive team/specialist profiles
 │       │   │   ├── faqs.ts         # Verified FAQ questions & answers
-│       │   │   ├── service-pages.ts# 7 medical direction deep-dives & symptoms
+│       │   │   ├── service-pages.ts# Service category deep-dives & features
 │       │   │   └── services.ts     # Complete pricing catalog & packages
 │       │   ├── lib/sanity/
 │       │   │   ├── client.ts       # Configured next-sanity client
@@ -123,18 +123,18 @@ All communication between Next.js and Sanity flows through centralized getter fu
 ### Architecture of a Production Resolver Function
 
 Every getter implements:
-1. **ISR Cache Tagging:** Next.js cache revalidation tags (`tags: ['doctor']`) for on-demand purge via webhooks.
-2. **Defensive GROQ Projections:** Dereferencing relations inline (e.g. `assignedDoctor->slug.current`, `photo.asset->url`).
+1. **ISR Cache Tagging:** Next.js cache revalidation tags (`tags: ['specialist']`) for on-demand purge via webhooks.
+2. **Defensive GROQ Projections:** Dereferencing relations inline (e.g. `assignedSpecialist->slug.current`, `photo.asset->url`).
 3. **Empty Collection Protection:** Falling back immediately if Sanity returns an empty array `[]`.
 4. **Field-Level Fallback Normalization:** Merging live values over static fallbacks.
 5. **Catch-Block Circuit Breaker:** Returning static data if network requests timeout or fail.
 
 ```typescript
 // Pattern: Complete Resilient Resolver Function
-export async function getDoctors(): Promise<Doctor[]> {
+export async function getSpecialists(): Promise<Specialist[]> {
   try {
-    const sanityDoctors = await client.fetch<any[]>(
-      `*[_type == "doctor"] | order(coalesce(order, 999) asc) {
+    const sanitySpecialists = await client.fetch<any[]>(
+      `*[_type == "specialist"] | order(coalesce(order, 999) asc) {
         _id,
         name,
         "slug": slug.current,
@@ -143,11 +143,10 @@ export async function getDoctors(): Promise<Doctor[]> {
         quote,
         experience,
         specialization,
-        "specializations": *[_type == "medicalDirection" && references(^._id)].title,
+        "categories": *[_type == "serviceCategory" && references(^._id)].title,
         bio,
         membership,
         conferences,
-        patients,
         education[] { institution, detail },
         schedule[] { day, hours, isOff },
         "certificates": certificates[] {
@@ -157,39 +156,38 @@ export async function getDoctors(): Promise<Doctor[]> {
           "imageUrl": asset->url,
           category
         },
-        houseCallAvailable,
-        houseCallPrice,
+        remoteAvailable,
         order
       }`,
       {},
       {
         next: {
           revalidate: process.env.NODE_ENV === 'development' ? 0 : 60,
-          tags: ['doctor'],
+          tags: ['specialist'],
         },
       }
     );
 
     // Circuit Breaker: Fallback if Sanity returns zero documents
-    if (!sanityDoctors || sanityDoctors.length === 0) {
-      return DOCTORS;
+    if (!sanitySpecialists || sanitySpecialists.length === 0) {
+      return SPECIALISTS;
     }
 
     // Field-Level Merging against static verified dataset
-    return sanityDoctors.map((doc) => {
-      const fallback = DOCTORS.find((d) => d.slug === (doc.slug || doc._id));
+    return sanitySpecialists.map((doc) => {
+      const fallback = SPECIALISTS.find((s) => s.slug === (doc.slug || doc._id));
       
       return {
         id: doc.slug || doc._id,
-        name: doc.name || fallback?.name || 'Без імені',
+        name: doc.name || fallback?.name || 'Unnamed Specialist',
         slug: doc.slug || doc._id,
-        title: doc.title || fallback?.title || 'Лікарка клініки',
-        specialty: doc.specialization || fallback?.specialty || doc.title || 'Доказова медицина',
-        specialization: doc.specialization || fallback?.specialization || doc.title || 'Консультації',
+        title: doc.title || fallback?.title || 'Senior Specialist',
+        specialty: doc.specialization || fallback?.specialty || doc.title || 'Consulting',
+        specialization: doc.specialization || fallback?.specialization || doc.title || 'General Advisory',
         // Anti-Blank-UI Array Pattern:
         bio: (Array.isArray(doc.bio) && doc.bio.length > 0)
           ? doc.bio
-          : (fallback?.bio || ['Доказова спеціалістка клініки «Дім Імунітету»']),
+          : (fallback?.bio || ['Certified domain specialist']),
         education: (Array.isArray(doc.education) && doc.education.length > 0)
           ? doc.education
           : (fallback?.education || []),
@@ -205,15 +203,15 @@ export async function getDoctors(): Promise<Doctor[]> {
         certificates: (Array.isArray(doc.certificates) && doc.certificates.length > 0)
           ? doc.certificates
           : (fallback?.certificates || []),
-        houseCallAvailable: doc.houseCallAvailable !== undefined
-          ? Boolean(doc.houseCallAvailable)
-          : Boolean(fallback?.houseCallAvailable),
+        remoteAvailable: doc.remoteAvailable !== undefined
+          ? Boolean(doc.remoteAvailable)
+          : Boolean(fallback?.remoteAvailable),
         order: typeof doc.order === 'number' ? doc.order : undefined,
       };
     });
   } catch (error) {
-    console.error('Error fetching doctors from Sanity, falling back to static:', error);
-    return DOCTORS; // Emergency zero-downtime floor
+    console.error('Error fetching specialists from Sanity, falling back to static:', error);
+    return SPECIALISTS; // Emergency zero-downtime floor
   }
 }
 ```
@@ -280,7 +278,7 @@ return [...mappedSanityPosts, ...remainingStatic];
 ### 4.5. The In-Component Shadowing Trap & Single Normalization Boundary
 > [!CAUTION]
 > **The In-Component Fallback Anti-Pattern:**  
-> Never declare static fallback datasets (e.g. `const CLINICAL_DIRECTIONS = [...]`, `const diagnosticsMap = {...}`) inside UI presentation components.  
+> Never declare static fallback datasets (e.g. `const SERVICE_CATEGORIES = [...]`, `const servicesFallback = {...}`) inside UI presentation components.  
 > When a UI component performs in-line fallback merging (`prop.value || localFallback.value`), upstream dynamic objects that pass an unmigrated, empty, or differently-purposed field (such as a page hero subtitle instead of a teaser card description) will silently shadow the local fallback, causing fresh code updates to be hidden behind stale upstream data.
 >
 > **Enforced Architecture (Single Normalization Boundary):**  
@@ -303,29 +301,29 @@ return [...mappedSanityPosts, ...remainingStatic];
 
 | Domain Model | Sanity Schema | Fallback Dataset | UI Consumers | Core Fields Covered |
 | :--- | :--- | :--- | :--- | :--- |
-| **Doctor** | `studio/schemas/doctor.ts` | `web/src/data/doctors.ts` | `/doctors`, `/doctors/[slug]`, Direction cards, Hero | `name`, `slug`, `title`, `specialization`, `quote`, `bio`, `education`, `membership`, `conferences`, `schedule`, `certificates`, `houseCallAvailable` |
-| **Medical Direction** | `studio/schemas/medicalDirection.ts` | `web/src/data/service-pages.ts` | `/services/[slug]`, Header menu, Homepage grid | `title`, `slug`, `subtitle`, `cardDescription`, `heroProblem`, `categoryBadge`, `methods`, `specialists`, `services`, `packages`, `bookingService`, `faqs`, `reviews`, `crossLinks`, `seo` |
-| **Service & Package** | `studio/schemas/service.ts` | `web/src/data/services.ts` | `/services`, Prices tables, `PackageCard`, Booking Modal | `name`, `slug`, `category`, `price`, `duration`, `description`, `features`, `badge`, `forWhom`, `assignedDoctor`, `order` |
+| **Specialist** | `studio/schemas/specialist.ts` | `web/src/data/specialists.ts` | `/specialists`, `/specialists/[slug]`, Category cards, Hero | `name`, `slug`, `title`, `specialization`, `quote`, `bio`, `education`, `membership`, `conferences`, `schedule`, `certificates`, `remoteAvailable` |
+| **Service Category** | `studio/schemas/serviceCategory.ts` | `web/src/data/service-pages.ts` | `/services/[slug]`, Header menu, Homepage grid | `title`, `slug`, `subtitle`, `cardDescription`, `heroSubtitle`, `categoryBadge`, `methods`, `specialists`, `services`, `packages`, `bookingService`, `faqs`, `reviews`, `crossLinks`, `seo` |
+| **Service & Package** | `studio/schemas/service.ts` | `web/src/data/services.ts` | `/services`, Prices tables, `PackageCard`, Booking Modal | `name`, `slug`, `category`, `price`, `duration`, `description`, `features`, `badge`, `forWhom`, `assignedSpecialist`, `order` |
 | **Blog Post** | `studio/schemas/post.ts` | `web/src/data/blog-posts.ts` | `/blog`, `/blog/[slug]`, Homepage highlights | `title`, `slug`, `author`, `category`, `mainImage`, `excerpt`, `publishedAt`, `readTime`, `body`, `seo` |
 | **Homepage FAQ** | `studio/schemas/faqItem.ts` | `web/src/data/faqs.ts` | Homepage FAQ Accordion | `question`, `answer`, `category`, `order` |
-| **Clinic / Brand Settings** | `studio/schemas/clinicSettings.ts` | `DEFAULT_CLINIC_SETTINGS` | Footer, Header, Booking contacts, Schema.org | `clinicName`, `phone`, `email`, `address`, `workingHours`, `license`, `socialLinks`, `alertBanner` |
-| **Hub Route SEO** | `studio/schemas/pageSeo.ts` | Inline route metadata | `/`, `/services`, `/doctors`, `/blog`, `/prices`, `/cabinet` | `metaTitle`, `metaDescription`, `keywords`, `ogImage`, `canonicalUrl`, `noIndex` |
+| **Site / Brand Settings** | `studio/schemas/siteSettings.ts` | `DEFAULT_SITE_SETTINGS` | Footer, Header, Booking contacts, Schema.org | `brandName`, `phone`, `email`, `address`, `workingHours`, `socialLinks`, `alertBanner` |
+| **Hub Route SEO** | `studio/schemas/pageSeo.ts` | Inline route metadata | `/`, `/services`, `/specialists`, `/blog`, `/prices`, `/cabinet` | `metaTitle`, `metaDescription`, `keywords`, `ogImage`, `canonicalUrl`, `noIndex` |
 
 ---
 
 ## 6. Architectural Governance & Best Practices
 
-### 6.1. Decoupled SEO: Embedded Direction SEO vs Route `pageSeo`
+### 6.1. Decoupled SEO: Embedded Category SEO vs Route `pageSeo`
 - **The Rule:** Do NOT add `/services/[slug]` routes into `pageSeo.ts`.
 - **The Architecture:**
-  - `pageSeo` manages exclusively static hub routes (`/`, `/services`, `/doctors`, etc.).
-  - `medicalDirection.seo` is an embedded object inside each clinical direction document. This enforces **Single Source of Truth** — clinical SEO lives alongside symptoms, methods, and specialists.
-  - Direction pages (`/services/[slug]/page.tsx`) query `getMedicalDirectionBySlug` directly, bypassing `pageSeo` and eliminating redundant API round-trips.
+  - `pageSeo` manages exclusively static hub routes (`/`, `/services`, `/specialists`, etc.).
+  - `serviceCategory.seo` is an embedded object inside each service category document. This enforces **Single Source of Truth** — category SEO lives alongside features, methods, and assigned specialists.
+  - Category pages (`/services/[slug]/page.tsx`) query `getServiceCategoryBySlug` directly, bypassing `pageSeo` and eliminating redundant API round-trips.
 
 ### 6.2. Strict Separation of Styling from CMS Content
 - **The Rule:** Never expose CSS utility classes, hex color codes, or layout boolean flags (`highlight`, `isCardBorderGreen`) in Sanity schemas.
 - **The Architecture:**
-  - Editors enter semantic information: `badge: "Популярний пакет"`.
+  - Editors enter semantic information: `badge: "Popular Package"`.
   - Frontend components compute visual styles deterministically:
     ```typescript
     // In PackageCard.tsx:
@@ -334,25 +332,16 @@ return [...mappedSanityPosts, ...remainingStatic];
     ```
 
 ### 6.3. Unified Service Model (Eliminate Orphan Schemas)
-- All clinical offerings — whether standalone consultations, diagnostic tests, or multi-week packages — share the `service.ts` schema.
+- All service offerings — whether standalone consultations, audits, or multi-week packages — share the `service.ts` schema.
 - Packages are designated by `category: 'packages'` and utilize `features: string[]` for bullet points.
 - Do not create independent `packageDeal` schemas.
 
 ### 6.4. Canonical Taxonomy Synchronization
-All 7 clinical directions must be strictly synchronized across schemas, types, and navigation menus:
-1. `endocrinology` (Ендокринологія та імунітет)
-2. `psychiatry` (Психотерапія та психіатрія)
-3. `therapy` (Терапія та ревматологія)
-4. `immunology` (Клінічна імунологія)
-5. `allergology` (Алергологія та АСІТ)
-6. `vaccination` (Вакцинація)
-7. `nutrition` (Нутриціологія та харчування)
-
-Whenever a medical direction is added or modified, update:
+All primary service categories must be strictly synchronized across schemas, types, and navigation menus. Whenever a service category is added or modified, update:
 - Options list in `main/studio/schemas/service.ts`
 - Options list in `main/studio/schemas/post.ts`
 - Options list in `main/studio/schemas/faqItem.ts`
-- Type union `MedicalDirectionSlug` in `main/web/src/types/index.ts`
+- Type union `ServiceCategorySlug` in `main/web/src/types/index.ts`
 - Nav menu builder in `main/web/src/components/Header.tsx` & `Footer.tsx`
 
 ---
@@ -403,8 +392,8 @@ pnpm build:studio
 | Symptom / Error | Root Cause | Immediate Remediation |
 | :--- | :--- | :--- |
 | **Empty UI blocks (e.g. blank education list)** | Checking `doc.education \|\| fallback` when Sanity returns `[]` (truthy). | Check array length: `(Array.isArray(doc.field) && doc.field.length > 0) ? doc.field : fallback`. |
-| **Edits in Studio do not reflect on live site** | Route is using ISR without cache tag revalidation or missing tag. | Verify `api.ts` includes proper tags: `tags: ['doctor']` and test `/api/revalidate?tag=doctor`. |
-| **Missing direction in FAQ or Blog category dropdown** | New clinical category added to code but omitted from schema `options.list`. | Add `{ title: '...', value: 'slug' }` to `category` in `faqItem.ts` and `post.ts`. |
+| **Edits in Studio do not reflect on live site** | Route is using ISR without cache tag revalidation or missing tag. | Verify `api.ts` includes proper tags: `tags: ['specialist']` and test `/api/revalidate?tag=specialist`. |
+| **Missing category in FAQ or Blog category dropdown** | New service category added to code but omitted from schema `options.list`. | Add `{ title: '...', value: 'slug' }` to `category` in `faqItem.ts` and `post.ts`. |
 | **TypeScript error: `Property does not exist on type ServiceItem`** | Schema field added without updating `types/index.ts` domain interface. | Add optional property (e.g. `features?: string[]`) to `types/index.ts`. |
-| **Redundant API calls on `/services/[slug]`** | Route querying `pageSeo` document in addition to `medicalDirection`. | Remove `pageSeo` query; use embedded `medicalDirection.seo` object. |
+| **Redundant API calls on `/services/[slug]`** | Route querying `pageSeo` document in addition to `serviceCategory`. | Remove `pageSeo` query; use embedded `serviceCategory.seo` object. |
 | **`pnpm build` fails after schema edit** | Schema change broke GROQ return type or missing import. | Re-run `pnpm typegen`, check `api.ts` field mappings, and verify build. |

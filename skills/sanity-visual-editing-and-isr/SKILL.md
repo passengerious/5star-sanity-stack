@@ -212,7 +212,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ message: 'Bad Request' }, { status: 400 });
     }
 
-    // Invalidate the entity-level tag (e.g. 'doctor', 'service', 'post')
+    // Invalidate the entity-level tag (e.g. 'specialist', 'service', 'post')
     revalidateTag(body._type);
 
     return NextResponse.json({

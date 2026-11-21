@@ -2,7 +2,7 @@
  * Pure Presentation Component Example (ADR 0007 Standard)
  *
  * Anti-Pattern Prohibitions:
- * ❌ NEVER declare static fallback datasets (e.g., const CLINICAL_DIRECTIONS = [...]) inside .tsx files.
+ * ❌ NEVER declare static fallback datasets (e.g., const SERVICE_CATEGORIES = [...]) inside .tsx files.
  * ❌ NEVER perform inline fallback chaining (e.g., item.title || fallbackData.title) in JSX.
  * ❌ In-component fallbacks cause stale upstream CMS records to silently shadow fresh code updates!
  *
@@ -13,7 +13,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { Stethoscope, Sparkles, ArrowRight, type LucideIcon } from 'lucide-react';
+import { Briefcase, Sparkles, ArrowRight, type LucideIcon } from 'lucide-react';
 import type { NormalizedServiceItem } from '@/types';
 
 interface ServiceGridProps {
@@ -26,11 +26,11 @@ interface ServiceGridProps {
 /** Visual styling tokens ONLY — Zero domain text or fallback copies! */
 const CATEGORY_VISUALS: Record<string, { icon: LucideIcon; badgeClass: string; cardClass: string }> = {
   consultation: {
-    icon: Stethoscope,
+    icon: Briefcase,
     badgeClass: 'bg-emerald-100 text-emerald-800',
     cardClass: 'border-emerald-200/80 hover:border-emerald-500 bg-emerald-50/20',
   },
-  diagnostic: {
+  audit: {
     icon: Sparkles,
     badgeClass: 'bg-amber-100 text-amber-800',
     cardClass: 'border-amber-200/80 hover:border-amber-500 bg-amber-50/20',
@@ -38,15 +38,15 @@ const CATEGORY_VISUALS: Record<string, { icon: LucideIcon; badgeClass: string; c
 };
 
 const DEFAULT_VISUAL = {
-  icon: Stethoscope,
+  icon: Briefcase,
   badgeClass: 'bg-slate-100 text-slate-800',
   cardClass: 'border-slate-200 hover:border-slate-400 bg-white',
 };
 
 export const ServiceGrid: React.FC<ServiceGridProps> = ({
   services,
-  title = 'Послуги медичного простору',
-  subtitle = 'Усі прийоми та дослідження проводяться за міжнародними доказовими протоколами.',
+  title = 'Available Services & Packages',
+  subtitle = 'All packages and consultations follow verified industry standards.',
 }) => {
   return (
     <section className="py-12 space-y-8">
