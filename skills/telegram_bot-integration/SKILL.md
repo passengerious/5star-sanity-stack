@@ -30,14 +30,14 @@ flowchart LR
         Group["Operator / Manager Chat Group"]
     end
 
-    Form -->|1. Insert Record| DB
-    Form -->|2. Send Interactive Card| Bot
-    Bot -->|3. Push Notification + Inline Buttons| Group
-    Group -->|4. Manager clicks [Approve / Cancel]| Bot
-    Bot -->|5. HTTP Webhook Event| Webhook
-    Webhook -->|6. Admin Client Updates Status| DB
-    Webhook -->|7. editMessageText (Freeze Card)| Bot
-    Webhook -->|8. Revalidate Frontend| Cache
+    Form -->|"1. Insert Record"| DB
+    Form -->|"2. Send Interactive Card"| Bot
+    Bot -->|"3. Push Notification + Inline Buttons"| Group
+    Group -->|"4. Manager clicks Confirm or Cancel"| Bot
+    Bot -->|"5. HTTP Webhook Event"| Webhook
+    Webhook -->|"6. Admin Client Updates Status"| DB
+    Webhook -->|"7. editMessageText (Freeze Card)"| Bot
+    Webhook -->|"8. Revalidate Frontend"| Cache
 ```
 
 ### Key Advantages:

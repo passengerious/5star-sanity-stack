@@ -32,10 +32,10 @@ flowchart TD
     subgraph Presentation["Pages & Layouts (Server Components)"]
         RootLayout["app/layout.tsx (metadataBase + Title Template)"]
         PageMeta["app/**/page.tsx (generateMetadata)"]
-        JsonLd["<script type='application/ld+json'> (Schema.org)"]
+        JsonLd["JSON-LD Structured Data (Schema.org)"]
     end
 
-    VercelEnv -->|If not 'production'| Headers
+    VercelEnv -->|"If not 'production'"| Headers
     BaseUrl --> Robots
     BaseUrl --> Sitemap
     BaseUrl --> RootLayout

@@ -35,12 +35,12 @@ flowchart TD
         RevalWebhook["POST /api/revalidate (On-Demand Tag Invalidation)"]
     end
 
-    Studio -->|Embeds via iframe| DraftRoute
+    Studio -->|"Embeds via iframe"| DraftRoute
     DraftRoute --> Cookie
     Cookie --> DraftFetch
     DraftFetch --> LiveOverlay
-    LiveInput -->|Publishes document| RevalWebhook
-    RevalWebhook -->|revalidateTag('service')| EdgeCDN
+    LiveInput -->|"Publishes document"| RevalWebhook
+    RevalWebhook -->|"revalidateTag('service')"| EdgeCDN
     EdgeCDN --> CachedHTML
 ```
 

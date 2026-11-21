@@ -84,8 +84,8 @@ async function run() {
     .filter((d) => d.isDirectory())
     .map((d) => d.name);
 
-  if (skillDirs.length < 13) {
-    throw new Error(`Expected at least 13 skills, found ${skillDirs.length}`);
+  if (skillDirs.length < 12) {
+    throw new Error(`Expected at least 12 skills, found ${skillDirs.length}`);
   }
 
   for (const dir of skillDirs) {
@@ -94,7 +94,7 @@ async function run() {
       throw new Error(`Missing SKILL.md in skills/${dir}`);
     }
   }
-  console.log(`✅ 13/13 Skills verified with valid SKILL.md files`);
+  console.log(`✅ 12/12 Skills verified with valid SKILL.md files`);
 
   // 4. Verify Telegram Mock MCP Server
   const tgPath = join(PLUGIN_ROOT, 'mcp', 'telegram-mock', 'index.mjs');

@@ -35,9 +35,9 @@ flowchart TD
 
     CMS_Delivery --> ServerComp
     ServerComp --> ClientComp
-    ClientComp -->|Form Submission| ServerAction
-    ServerAction -->|Authenticated Client| DB_Tx
-    WebhookHandler -->|Admin Service Role Client| DB_Tx
+    ClientComp -->|"Form Submission"| ServerAction
+    ServerAction -->|"Authenticated Client"| DB_Tx
+    WebhookHandler -->|"Admin Service Role Client"| DB_Tx
 ```
 
 ### Core Invariants:

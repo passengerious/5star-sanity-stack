@@ -2,7 +2,7 @@
 
 - **Status**: Accepted
 - **Date**: 2026-11-05
-- **Authors**: Antigravity Pair Programmer
+- **Authors**: 5-Star Architecture Team
 - **Deciders**: Product Owner, Technical Lead, Lead Architect
 
 ## Context and Problem Statement

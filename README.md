@@ -1,6 +1,6 @@
 # 5-Star Sanity + Next.js App Router Stack Plugin
 
-Antigravity customization bundle for building resilient, high-performance web applications using the **5-Star Architecture**:
+AI coding agent plugin (Rules, Skills, and MCP Servers) for building resilient, high-performance web applications using the **5-Star Architecture**:
 - **Next.js 15 App Router** (React 19, Server Components)
 - **Sanity CMS v3** with Dual-Tier Fallback Architecture (ADR 0007 anti-shadowing)
 - **Supabase** (PostgREST, Row-Level Security, SSR Auth)
@@ -42,12 +42,11 @@ Enforced via `rules/AGENTS.md`:
 - **Zero In-Component Fallbacks**: UI components are pure presentation and never shadow upstream CMS fields with local constants.
 - **Runtime Contract Testing**: Data contracts verified against live resolver functions.
 
-### 3. Bundled Skills (13)
+### 3. Bundled Skills (12)
 - `content-experimentation-best-practices`: A/B testing and variant design.
 - `content-modeling-best-practices`: Schema architecture and content reuse.
 - `nextjs-seo-structured-data`: Dynamic robots, sitemaps, JSON-LD schema.org.
 - `portable-text`: Serialization and rendering of Sanity Portable Text.
-- `react-vite-dashboard`: Admin dashboard generation.
 - `sanity-best-practices`: GROQ, TypeGen, Visual Editing, ISR revalidation.
 - `sanity-migration`: Content migration patterns.
 - `sanity-studio-upgrade`: Tailored Studio upgrade guidance.
@@ -62,7 +61,7 @@ Enforced via `rules/AGENTS.md`:
 ## Installation
 
 ### Global (Machine-Wide)
-Clone or symlink into your global Antigravity config directory:
+Clone or symlink into your global agent plugins directory (e.g. `~/.gemini/config/plugins/5star-sanity-stack` or `~/.agents/plugins/5star-sanity-stack`):
 ```bash
 git clone <repository-url> ~/.gemini/config/plugins/5star-sanity-stack
 ```

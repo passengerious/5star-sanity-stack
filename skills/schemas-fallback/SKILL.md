@@ -48,11 +48,11 @@ flowchart TD
     end
 
     Req --> FetchCall
-    FetchCall -->|Network Request| SanityAPI
-    SanityAPI -->|Success: Populated Document| FieldMerger
-    SanityAPI -.->|Error / Timeout / Empty| StaticSpecialists
-    StaticSpecialists -->|Fallback Injection| FieldMerger
-    DraftMode -->|Live Preview| FieldMerger
+    FetchCall -->|"Network Request"| SanityAPI
+    SanityAPI -->|"Success: Populated Document"| FieldMerger
+    SanityAPI -.->|"Error / Timeout / Empty"| StaticSpecialists
+    StaticSpecialists -->|"Fallback Injection"| FieldMerger
+    DraftMode -->|"Live Preview"| FieldMerger
     FieldMerger --> ServerComponent
     ServerComponent --> ClientViews
 ```
